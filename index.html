@@ -1636,13 +1636,13 @@
                 return;
             }
 
-            var html = '';
+            var groups = {};
             for (var i = 0; i < results.length; i++) {
                 var page = results[i];
                 var props = page.properties;
                 var title = '';
                 var content = '';
-                var tags = '';
+                var tagName = '未分类';
                 var dateStr = '';
 
                 for (var key in props) {
@@ -1653,13 +1653,11 @@
                     if (prop.type === 'rich_text' && prop.rich_text && prop.rich_text.length > 0) {
                         content = prop.rich_text[0].plain_text;
                     }
-                    if (prop.type === 'multi_select' && prop.multi_select) {
-                        for (var t = 0; t < prop.multi_select.length; t++) {
-                            tags += '<span style="display:inline-block;background:#e8f0e8;color:#5a7c5a;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;">' + prop.multi_select[t].name + '</span>';
-                        }
+                    if (prop.type === 'multi_select' && prop.multi_select && prop.multi_select.length > 0) {
+                        tagName = prop.multi_select[0].name;
                     }
                     if (prop.type === 'select' && prop.select) {
-                        tags += '<span style="display:inline-block;background:#e8f0e8;color:#5a7c5a;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;">' + prop.select.name + '</span>';
+                        tagName = prop.select.name;
                     }
                     if (prop.type === 'created_time' && prop.created_time) {
                         var d = new Date(prop.created_time);
@@ -1668,12 +1666,22 @@
                 }
 
                 if (!title) title = '未命名笔记';
+                if (!groups[tagName]) groups[tagName] = [];
+                groups[tagName].push({title: title, content: content, date: dateStr});
+            }
 
-                html += '<div class="idea-card" style="background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e8 100%); border-left-color: #5a7c5a;">';
-                html += '<div style="font-weight:600;font-size:15px;margin-bottom:6px;">' + title + '</div>';
-                if (content) html += '<div style="font-size:13px;color:#555;margin-bottom:8px;line-height:1.5;">' + content + '</div>';
-                if (tags) html += '<div style="margin-bottom:6px;">' + tags + '</div>';
-                if (dateStr) html += '<div style="font-size:11px;color:#888;">' + dateStr + '</div>';
+            var html = '';
+            for (var category in groups) {
+                html += '<div style="margin-bottom:16px;">';
+                html += '<div style="font-size:14px;font-weight:600;color:#5a7c5a;margin-bottom:8px;padding:6px 12px;background:#e8f0e8;border-radius:8px;display:inline-block;">' + category + ' (' + groups[category].length + ')</div>';
+                for (var j = 0; j < groups[category].length; j++) {
+                    var card = groups[category][j];
+                    html += '<div class="idea-card" style="background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e8 100%); border-left-color: #5a7c5a;">';
+                    html += '<div style="font-weight:600;font-size:15px;margin-bottom:6px;">' + card.title + '</div>';
+                    if (card.content) html += '<div style="font-size:13px;color:#555;margin-bottom:8px;line-height:1.5;">' + card.content + '</div>';
+                    if (card.date) html += '<div style="font-size:11px;color:#888;">' + card.date + '</div>';
+                    html += '</div>';
+                }
                 html += '</div>';
             }
             container.innerHTML = html;
