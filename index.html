@@ -370,8 +370,24 @@
 
         <div class="section" id="section-books">
             <div class="section-title">读书笔记</div>
-            <div id="bookList"></div>
-            <button class="btn-primary" onclick="openBookModal()" style="margin-top: 12px;">+ 添加书籍</button>
+            <div class="card" style="margin-bottom: 12px;">
+                <div id="notionTokenArea">
+                    <input type="text" class="form-input" id="notionTokenInput" placeholder="粘贴 Notion Integration Token...">
+                    <input type="text" class="form-input" id="notionDbInput" placeholder="粘贴 Database ID...">
+                    <button class="btn-primary" onclick="saveNotionConfig()" style="width: 100%;">保存配置</button>
+                </div>
+                <div id="notionSyncArea" style="display:none;">
+                    <button class="btn-primary" onclick="syncNotion()" style="width: 100%;">🔄 同步 Notion 知识库</button>
+                    <button class="btn-primary" onclick="editNotionConfig()" style="width: 100%; margin-top: 8px; background: #888;">修改配置</button>
+                </div>
+                <div id="notionStatus" style="font-size: 12px; color: #888; text-align: center; margin-top: 8px;">首次使用请输入 Notion Token 和 Database ID</div>
+            </div>
+            <div id="notionCards"></div>
+            <div style="margin: 16px 0; border-top: 1px dashed #ccc; padding-top: 16px;">
+                <div style="font-size: 14px; color: #888; margin-bottom: 10px;">本地书籍记录</div>
+                <div id="bookList"></div>
+                <button class="btn-primary" onclick="openBookModal()" style="margin-top: 12px;">+ 添加书籍</button>
+            </div>
         </div>
 
         <div class="section" id="section-ideas">
@@ -778,6 +794,130 @@
             localStorage.setItem('aiNote', aiNote);
         }
 
+        var notionToken = localStorage.getItem('notionToken') || '';
+        var notionDbId = localStorage.getItem('notionDbId') || '';
+
+        function initNotionUI() {
+            if (notionToken && notionDbId) {
+                document.getElementById('notionTokenArea').style.display = 'none';
+                document.getElementById('notionSyncArea').style.display = 'block';
+                document.getElementById('notionStatus').textContent = '已配置，点击同步按钮获取笔记';
+            }
+        }
+
+        function saveNotionConfig() {
+            var token = document.getElementById('notionTokenInput').value.trim();
+            var dbId = document.getElementById('notionDbInput').value.trim();
+            if (!token || !dbId) {
+                alert('请填写 Token 和 Database ID');
+                return;
+            }
+            notionToken = token;
+            notionDbId = dbId;
+            localStorage.setItem('notionToken', token);
+            localStorage.setItem('notionDbId', dbId);
+            document.getElementById('notionTokenArea').style.display = 'none';
+            document.getElementById('notionSyncArea').style.display = 'block';
+            document.getElementById('notionStatus').textContent = '配置已保存！';
+            document.getElementById('notionStatus').style.color = '#5a7c5a';
+        }
+
+        function editNotionConfig() {
+            document.getElementById('notionTokenArea').style.display = 'block';
+            document.getElementById('notionSyncArea').style.display = 'none';
+            document.getElementById('notionTokenInput').value = notionToken;
+            document.getElementById('notionDbInput').value = notionDbId;
+        }
+
+        function syncNotion() {
+            var status = document.getElementById('notionStatus');
+            status.textContent = '正在同步...';
+            status.style.color = '#5a7c5a';
+
+            fetch('https://api.notion.com/v1/databases/' + notionDbId, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + notionToken,
+                    'Notion-Version': '2022-06-28'
+                }
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error('数据库连接失败');
+                return fetch('https://api.notion.com/v1/databases/' + notionDbId + '/query', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + notionToken,
+                        'Notion-Version': '2022-06-28',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ page_size: 100 })
+                });
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error('查询失败');
+                return response.json();
+            })
+            .then(function(data) {
+                renderNotionCards(data.results);
+                status.textContent = '同步成功！共 ' + data.results.length + ' 条笔记';
+                status.style.color = '#5a7c5a';
+            })
+            .catch(function(error) {
+                status.textContent = '同步失败: ' + error.message;
+                status.style.color = '#c97e7e';
+            });
+        }
+
+        function renderNotionCards(results) {
+            var container = document.getElementById('notionCards');
+            if (!results || results.length === 0) {
+                container.innerHTML = '<div class="empty-state">Notion 知识库为空</div>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < results.length; i++) {
+                var page = results[i];
+                var props = page.properties;
+                var title = '';
+                var content = '';
+                var tags = '';
+                var dateStr = '';
+
+                for (var key in props) {
+                    var prop = props[key];
+                    if (prop.type === 'title' && prop.title && prop.title.length > 0) {
+                        title = prop.title[0].plain_text;
+                    }
+                    if (prop.type === 'rich_text' && prop.rich_text && prop.rich_text.length > 0) {
+                        content = prop.rich_text[0].plain_text;
+                    }
+                    if (prop.type === 'multi_select' && prop.multi_select) {
+                        for (var t = 0; t < prop.multi_select.length; t++) {
+                            tags += '<span style="display:inline-block;background:#e8f0e8;color:#5a7c5a;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;">' + prop.multi_select[t].name + '</span>';
+                        }
+                    }
+                    if (prop.type === 'select' && prop.select) {
+                        tags += '<span style="display:inline-block;background:#e8f0e8;color:#5a7c5a;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;">' + prop.select.name + '</span>';
+                    }
+                    if (prop.type === 'created_time' && prop.created_time) {
+                        var d = new Date(prop.created_time);
+                        dateStr = (d.getMonth()+1) + '月' + d.getDate() + '日';
+                    }
+                }
+
+                if (!title) title = '未命名笔记';
+
+                html += '<div class="idea-card" style="background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e8 100%); border-left-color: #5a7c5a;">';
+                html += '<div style="font-weight:600;font-size:15px;margin-bottom:6px;">' + title + '</div>';
+                if (content) html += '<div style="font-size:13px;color:#555;margin-bottom:8px;line-height:1.5;">' + content + '</div>';
+                if (tags) html += '<div style="margin-bottom:6px;">' + tags + '</div>';
+                if (dateStr) html += '<div style="font-size:11px;color:#888;">' + dateStr + '</div>';
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
         updateDate();
         renderTodos();
         renderBooks();
@@ -787,6 +927,7 @@
         renderCreator();
         renderMorning();
         document.getElementById('aiNote').value = aiNote;
+        initNotionUI();
 
         document.getElementById('bookModal').onclick = function(e) {
             if (e.target === this) closeBookModal();
