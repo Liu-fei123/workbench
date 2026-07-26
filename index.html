@@ -484,9 +484,22 @@
             <div style="font-size: 14px; color: #888; margin-bottom: 16px;">今天辛苦啦</div>
 
             <div class="calendar-widget" id="calendarWidget">
-                <div class="calendar-day-view" id="calendarDayView" onclick="toggleCalendarView()"></div>
+                <div class="calendar-day-view" id="calendarDayView">
+                    <div id="calendarDayContent"></div>
+                    <div style="font-size:12px;color:#888;margin-top:10px;text-align:center;" onclick="showMonthView()">点击展开月视图 ▼</div>
+                </div>
                 <div class="calendar-month-view" id="calendarMonthView"></div>
                 <div class="calendar-year-view" id="calendarYearView"></div>
+            </div>
+            <div id="dayNoteArea" style="display:none;margin-top:12px;">
+                <div class="card">
+                    <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📌 日期备注</div>
+                    <div id="dayNoteList"></div>
+                    <div class="todo-input-area" style="margin-top:10px;">
+                        <input type="text" class="todo-input" id="dayNoteInput" placeholder="添加备注...">
+                        <button class="btn-primary" onclick="addDayNote()">添加</button>
+                    </div>
+                </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
@@ -804,6 +817,7 @@
         };
 
         var calendarView = 'day';
+        var dayNotes = JSON.parse(localStorage.getItem('dayNotes') || '{}');
 
         function updateDate() {
             var now = new Date();
@@ -836,6 +850,8 @@
 
             var lunarToday = getLunar(year + '-' + (month+1) + '-' + today);
             var holidayToday = getHoliday(month+1, today, year, month+1, today);
+            var dateKey = year + '-' + (month+1) + '-' + today;
+            var notes = dayNotes[dateKey] || [];
 
             var dayHtml = '<div class="calendar-top-bar">';
             dayHtml += '<span>' + enMonths[month] + '</span>';
@@ -848,9 +864,17 @@
             if (lunarToday) dayHtml += '<div class="calendar-lunar">' + lunarToday + '</div>';
             if (holidayToday) dayHtml += '<div class="calendar-holiday-tag">' + holidayToday + '</div>';
             dayHtml += '<div class="calendar-weather">☀️ 天气晴朗 26°C</div>';
-            if (!isRealToday) dayHtml += '<div style="font-size:12px;color:#888;margin-top:8px;">点击返回今天</div>';
+            if (notes.length > 0) {
+                dayHtml += '<div style="margin-top:10px;padding:8px;background:#f5f0e8;border-radius:8px;font-size:12px;">';
+                for (var i = 0; i < notes.length; i++) {
+                    dayHtml += '<div>📌 ' + notes[i] + '</div>';
+                }
+                dayHtml += '</div>';
+            }
 
-            document.getElementById('calendarDayView').innerHTML = dayHtml;
+            document.getElementById('calendarDayContent').innerHTML = dayHtml;
+            document.getElementById('dayNoteArea').style.display = 'block';
+            renderDayNotes();
 
             var firstDay = new Date(year, month, 1).getDay();
             var daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -871,7 +895,9 @@
                 var isRealToday2 = (year === realToday.getFullYear() && month === realToday.getMonth() && d === realToday.getDate());
                 var h = getHoliday(month+1, d, year, month+1, d);
                 var lunar = getLunar(year + '-' + (month+1) + '-' + d);
-                var cellStyle = 'padding:4px 2px;border-radius:8px;cursor:pointer;font-size:13px;min-height:36px;';
+                var dKey = year + '-' + (month+1) + '-' + d;
+                var hasNote = dayNotes[dKey] && dayNotes[dKey].length > 0;
+                var cellStyle = 'padding:4px 2px;border-radius:8px;cursor:pointer;font-size:13px;min-height:40px;position:relative;';
                 if (isSelected) cellStyle += 'background:#5a7c5a;color:white;';
                 else if (isRealToday2) cellStyle += 'background:#e8f0e8;color:#5a7c5a;font-weight:600;';
                 else if (h) cellStyle += 'color:#c97e7e;font-weight:600;';
@@ -883,9 +909,13 @@
                 } else if (lunar) {
                     monthHtml += '<div style="font-size:9px;margin-top:2px;color:' + (isSelected ? 'rgba(255,255,255,0.7)' : '#bbb') + '">' + lunar + '</div>';
                 }
+                if (hasNote) {
+                    monthHtml += '<div style="position:absolute;top:2px;right:2px;width:6px;height:6px;background:#c97e7e;border-radius:50%;"></div>';
+                }
                 monthHtml += '</div>';
             }
             monthHtml += '</div>';
+            monthHtml += '<div style="text-align:center;margin-top:12px;font-size:12px;color:#888;" onclick="showYearView()">点击展开年视图 ▼</div>';
             document.getElementById('calendarMonthView').innerHTML = monthHtml;
 
             var yearHtml = '<div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:12px;">' + year + '年</div>';
@@ -897,6 +927,51 @@
             }
             yearHtml += '</div>';
             document.getElementById('calendarYearView').innerHTML = yearHtml;
+        }
+
+        function renderDayNotes() {
+            var dateKey = selectedDate.getFullYear() + '-' + (selectedDate.getMonth()+1) + '-' + selectedDate.getDate();
+            var notes = dayNotes[dateKey] || [];
+            var list = document.getElementById('dayNoteList');
+            if (notes.length === 0) {
+                list.innerHTML = '<div style="color:#888;font-size:13px;">暂无备注</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < notes.length; i++) {
+                html += '<div style="padding:8px;background:#f5f0e8;border-radius:8px;margin-bottom:6px;font-size:13px;display:flex;justify-content:space-between;">';
+                html += '<span>📌 ' + notes[i] + '</span>';
+                html += '<span onclick="deleteDayNote(' + i + ')" style="color:#c97e7e;cursor:pointer;">删除</span>';
+                html += '</div>';
+            }
+            list.innerHTML = html;
+        }
+
+        function addDayNote() {
+            var input = document.getElementById('dayNoteInput');
+            var text = input.value.trim();
+            if (!text) return;
+            var dateKey = selectedDate.getFullYear() + '-' + (selectedDate.getMonth()+1) + '-' + selectedDate.getDate();
+            if (!dayNotes[dateKey]) dayNotes[dateKey] = [];
+            dayNotes[dateKey].push(text);
+            localStorage.setItem('dayNotes', JSON.stringify(dayNotes));
+            input.value = '';
+            renderDayNotes();
+            renderCalendar();
+        }
+
+        function deleteDayNote(index) {
+            var dateKey = selectedDate.getFullYear() + '-' + (selectedDate.getMonth()+1) + '-' + selectedDate.getDate();
+            if (dayNotes[dateKey]) {
+                var newNotes = [];
+                for (var i = 0; i < dayNotes[dateKey].length; i++) {
+                    if (i !== index) newNotes.push(dayNotes[dateKey][i]);
+                }
+                dayNotes[dateKey] = newNotes;
+                localStorage.setItem('dayNotes', JSON.stringify(dayNotes));
+                renderDayNotes();
+                renderCalendar();
+            }
         }
 
         function selectDate(y, m, d) {
@@ -922,31 +997,19 @@
             renderCalendar();
         }
 
-        function toggleCalendarView() {
-            var dayV = document.getElementById('calendarDayView');
-            var monthV = document.getElementById('calendarMonthView');
-            var yearV = document.getElementById('calendarYearView');
+        function showMonthView() {
+            calendarView = 'month';
+            document.getElementById('calendarDayView').style.display = 'none';
+            document.getElementById('calendarMonthView').style.display = 'block';
+            document.getElementById('calendarYearView').style.display = 'none';
+            renderCalendar();
+        }
 
-            if (calendarView === 'day') {
-                dayV.style.display = 'none';
-                monthV.style.display = 'block';
-                yearV.style.display = 'none';
-                calendarView = 'month';
-                selectedDate = new Date();
-                renderCalendar();
-            } else if (calendarView === 'month') {
-                dayV.style.display = 'none';
-                monthV.style.display = 'none';
-                yearV.style.display = 'block';
-                calendarView = 'year';
-            } else {
-                dayV.style.display = 'block';
-                monthV.style.display = 'none';
-                yearV.style.display = 'none';
-                calendarView = 'day';
-                selectedDate = new Date();
-                renderCalendar();
-            }
+        function showYearView() {
+            calendarView = 'year';
+            document.getElementById('calendarDayView').style.display = 'none';
+            document.getElementById('calendarMonthView').style.display = 'none';
+            document.getElementById('calendarYearView').style.display = 'block';
         }
 
         function updateTodoCount() {
