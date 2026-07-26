@@ -277,6 +277,81 @@
             color: #888;
             cursor: pointer;
         }
+        .viral-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .viral-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .viral-tags {
+            margin-bottom: 8px;
+        }
+        .viral-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+        .viral-tag.platform {
+            background: #ff2442;
+            color: white;
+        }
+        .viral-tag.category {
+            background: #f0f0f0;
+            color: #666;
+        }
+        .viral-stats {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .viral-reason {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        .viral-label {
+            display: inline-block;
+            background: #8b7355;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 6px;
+        }
+        .viral-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .viral-btn-outline {
+            flex: 1;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .viral-btn-green {
+            flex: 1;
+            background: #5a7c5a;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -447,9 +522,18 @@
 
         <div class="section" id="section-creator">
             <div class="section-title">自媒体创作</div>
-            <div class="card">
+            
+            <div class="card" style="margin-bottom: 12px;">
+                <button class="btn-primary" onclick="generateTopicsFromNotion()" style="width: 100%;">💡 从读书笔记生成选题</button>
+                <div id="generateStatus" style="font-size: 12px; color: #888; text-align: center; margin-top: 8px;">基于你的 Notion 知识库自动推荐</div>
+            </div>
+            
+            <div id="generatedTopics"></div>
+            
+            <div style="margin: 16px 0; border-top: 1px dashed #ccc; padding-top: 16px;">
+                <div style="font-size: 14px; color: #888; margin-bottom: 10px;">爆款笔记分析</div>
                 <div id="topicList"></div>
-                <button class="btn-primary" onclick="openTopicModal()">+ 添加选题</button>
+                <button class="btn-primary" onclick="openTopicModal()" style="margin-top: 12px;">+ 添加爆款分析</button>
             </div>
         </div>
     </div>
@@ -470,11 +554,15 @@
     <div class="modal-overlay" id="topicModal">
         <div class="modal">
             <div class="modal-header">
-                <div style="font-weight: 600;">添加选题</div>
+                <div style="font-weight: 600;">添加爆款分析</div>
                 <span class="modal-close" onclick="closeTopicModal()">×</span>
             </div>
-            <input type="text" class="form-input" id="topicTitle" placeholder="选题标题">
-            <textarea class="form-textarea" id="topicOutline" placeholder="内容大纲..."></textarea>
+            <input type="text" class="form-input" id="topicTitle" placeholder="视频/笔记标题">
+            <input type="text" class="form-input" id="topicPlatform" placeholder="平台 (抖音/小红书/B站)">
+            <input type="text" class="form-input" id="topicStats" placeholder="数据 (如: 赞50.1万·收藏29.6万)">
+            <input type="text" class="form-input" id="topicWhy" placeholder="为什么火">
+            <input type="text" class="form-input" id="topicLearn" placeholder="可借鉴点">
+            <input type="text" class="form-input" id="topicUrl" placeholder="视频链接">
             <button class="btn-primary" onclick="saveTopic()" style="width: 100%;">保存</button>
         </div>
     </div>
@@ -718,15 +806,24 @@
         function renderCreator() {
             var list = document.getElementById('topicList');
             if (topics.length === 0) {
-                list.innerHTML = '<div class="empty-state">还没有选题</div>';
+                list.innerHTML = '<div class="empty-state">还没有爆款分析</div>';
                 return;
             }
             var html = '';
             for (var i = 0; i < topics.length; i++) {
-                var topic = topics[i];
-                html += '<div class="idea-card">';
-                html += '<div style="font-weight:600;">' + topic.title + '</div>';
-                html += '<div style="font-size:12px;color:#888;margin-top:6px;">' + topic.date + '</div>';
+                var t = topics[i];
+                html += '<div class="viral-card">';
+                html += '<div class="viral-title">' + (i+1) + '. ' + t.title + '</div>';
+                html += '<div class="viral-tags">';
+                if (t.platform) html += '<span class="viral-tag platform">' + t.platform + '</span>';
+                html += '</div>';
+                if (t.stats) html += '<div class="viral-stats">' + t.stats + '</div>';
+                if (t.why) html += '<div class="viral-reason"><span class="viral-label">为什么火</span>' + t.why + '</div>';
+                if (t.learn) html += '<div class="viral-reason"><span class="viral-label">可借鉴</span>' + t.learn + '</div>';
+                html += '<div class="viral-actions">';
+                html += '<button class="viral-btn-outline" onclick="addToPlan(' + t.id + ')">+ 加入计划</button>';
+                if (t.url) html += '<button class="viral-btn-green" onclick="window.open(\'' + t.url + '\',\'_blank\')">看相关视频 ↗</button>';
+                html += '</div>';
                 html += '</div>';
             }
             list.innerHTML = html;
@@ -739,19 +836,143 @@
         function closeTopicModal() {
             document.getElementById('topicModal').classList.remove('active');
             document.getElementById('topicTitle').value = '';
-            document.getElementById('topicOutline').value = '';
+            document.getElementById('topicPlatform').value = '';
+            document.getElementById('topicStats').value = '';
+            document.getElementById('topicWhy').value = '';
+            document.getElementById('topicLearn').value = '';
+            document.getElementById('topicUrl').value = '';
         }
 
         function saveTopic() {
             var title = document.getElementById('topicTitle').value.trim();
-            var outline = document.getElementById('topicOutline').value.trim();
             if (!title) { alert('请输入标题'); return; }
             var now = new Date();
             var dateStr = (now.getMonth()+1) + '月' + now.getDate() + '日';
-            topics.unshift({id: Date.now(), title: title, outline: outline, date: dateStr});
+            topics.unshift({
+                id: Date.now(),
+                title: title,
+                platform: document.getElementById('topicPlatform').value.trim(),
+                stats: document.getElementById('topicStats').value.trim(),
+                why: document.getElementById('topicWhy').value.trim(),
+                learn: document.getElementById('topicLearn').value.trim(),
+                url: document.getElementById('topicUrl').value.trim(),
+                date: dateStr
+            });
             saveData();
             renderCreator();
             closeTopicModal();
+        }
+
+        function addToPlan(id) {
+            for (var i = 0; i < topics.length; i++) {
+                if (topics[i].id === id) {
+                    todos.push({id: Date.now(), text: '创作: ' + topics[i].title, completed: false});
+                    saveData();
+                    renderTodos();
+                    alert('已添加到今日计划！');
+                    break;
+                }
+            }
+        }
+
+        function generateTopicsFromNotion() {
+            var status = document.getElementById('generateStatus');
+            status.textContent = '正在分析知识库...';
+            status.style.color = '#5a7c5a';
+
+            if (!notionToken || !notionDbId) {
+                status.textContent = '请先配置 Notion（去读书笔记页面设置）';
+                status.style.color = '#c97e7e';
+                return;
+            }
+
+            var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.notion.com/v1/databases/' + notionDbId + '/query');
+
+            fetch(proxyUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + notionToken,
+                    'Notion-Version': '2022-06-28',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ page_size: 50 })
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error('查询失败');
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.object === 'error') throw new Error(data.message || 'API错误');
+                renderGeneratedTopics(data.results);
+                status.textContent = '已根据 ' + (data.results ? data.results.length : 0) + ' 条笔记生成选题';
+                status.style.color = '#5a7c5a';
+            })
+            .catch(function(error) {
+                status.textContent = '生成失败: ' + error.message;
+                status.style.color = '#c97e7e';
+            });
+        }
+
+        function renderGeneratedTopics(results) {
+            var container = document.getElementById('generatedTopics');
+            if (!results || results.length === 0) {
+                container.innerHTML = '<div class="empty-state">知识库为空，无法生成选题</div>';
+                return;
+            }
+
+            var templates = [
+                '读完《{title}》后，我悟了：{insight}',
+                '为什么{title}值得每个人读？',
+                '{title}教会我的3个道理',
+                '从{title}看{topic}的本质',
+                '如果早点读到{title}，我会...'
+            ];
+
+            var html = '<div style="font-size: 14px; color: #888; margin-bottom: 10px;">AI推荐选题</div>';
+            var count = 0;
+
+            for (var i = 0; i < results.length && count < 5; i++) {
+                var page = results[i];
+                var props = page.properties;
+                var title = '';
+                var content = '';
+
+                for (var key in props) {
+                    var prop = props[key];
+                    if (prop.type === 'title' && prop.title && prop.title.length > 0) {
+                        title = prop.title[0].plain_text;
+                    }
+                    if (prop.type === 'rich_text' && prop.rich_text && prop.rich_text.length > 0) {
+                        content = prop.rich_text[0].plain_text;
+                    }
+                }
+
+                if (!title) continue;
+
+                var tmpl = templates[count % templates.length];
+                var insight = content ? content.substring(0, 30) : '这个知识点太重要了';
+                var topicTitle = tmpl.replace('{title}', title).replace('{insight}', insight).replace('{topic}', title);
+
+                html += '<div class="idea-card" style="background: linear-gradient(135deg, #f0f7f0 0%, #e8f0e8 100%); border-left-color: #5a7c5a;">';
+                html += '<div style="font-weight:600;font-size:15px;margin-bottom:8px;">' + topicTitle + '</div>';
+                html += '<div style="font-size:12px;color:#888;margin-bottom:8px;">来源: ' + title + '</div>';
+                html += '<div class="viral-actions">';
+                html += '<button class="viral-btn-outline" onclick="saveGeneratedTopic(\'' + topicTitle.replace(/'/g, "\\'") + '\')">+ 加入选题库</button>';
+                html += '</div>';
+                html += '</div>';
+                count++;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function saveGeneratedTopic(title) {
+            var now = new Date();
+            var dateStr = (now.getMonth()+1) + '月' + now.getDate() + '日';
+            topics.unshift({id: Date.now(), title: title, platform: '', stats: '', why: '从读书笔记生成', learn: '', url: '', date: dateStr});
+            saveData();
+            renderCreator();
+            alert('已保存到选题库！');
         }
 
         function checkInMorning() {
