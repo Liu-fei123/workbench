@@ -1559,11 +1559,21 @@
             });
         }
 
+        function extractTags(text) {
+            var tags = [];
+            var regex = /\[\[(.*?)\]\]/g;
+            var match;
+            while ((match = regex.exec(text)) !== null) {
+                tags.push(match[1]);
+            }
+            return tags;
+        }
+
         function addNotionCard() {
             var status = document.getElementById('notionAddStatus');
             var title = document.getElementById('notionCardTitle').value.trim();
             var content = document.getElementById('notionCardContent').value.trim();
-            var tag = document.getElementById('notionCardTag').value.trim();
+            var tagInput = document.getElementById('notionCardTag').value.trim();
 
             if (!title) {
                 status.textContent = '请输入标题';
@@ -1580,6 +1590,11 @@
             status.textContent = '正在保存...';
             status.style.color = '#5a7c5a';
 
+            var allTags = extractTags(content);
+            if (tagInput) {
+                allTags.push(tagInput);
+            }
+
             var body = {
                 parent: { database_id: notionDbId },
                 properties: {
@@ -1595,9 +1610,13 @@
                 };
             }
 
-            if (tag) {
+            if (allTags.length > 0) {
+                var tagArray = [];
+                for (var i = 0; i < allTags.length; i++) {
+                    tagArray.push({ name: allTags[i] });
+                }
                 body.properties['标签'] = {
-                    multi_select: [{ name: tag }]
+                    multi_select: tagArray
                 };
             }
 
@@ -1617,7 +1636,7 @@
                 return response.json();
             })
             .then(function(data) {
-                status.textContent = '保存成功！';
+                status.textContent = '保存成功！标签: ' + allTags.join(', ');
                 status.style.color = '#5a7c5a';
                 document.getElementById('notionCardTitle').value = '';
                 document.getElementById('notionCardContent').value = '';
