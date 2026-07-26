@@ -1,0 +1,8 @@
+{
+  "name": "personal-dashboard",
+  "version": "1.0.0",
+  "description": "个人工作台 - 整合待办、读书、灵感、记账、英语、AI学习、自媒体创作、晨间习惯",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}
