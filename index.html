@@ -834,32 +834,25 @@
             status.textContent = '正在同步...';
             status.style.color = '#5a7c5a';
 
-            fetch('https://api.notion.com/v1/databases/' + notionDbId, {
-                method: 'GET',
+            var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.notion.com/v1/databases/' + notionDbId + '/query');
+
+            fetch(proxyUrl, {
+                method: 'POST',
                 headers: {
                     'Authorization': 'Bearer ' + notionToken,
-                    'Notion-Version': '2022-06-28'
-                }
+                    'Notion-Version': '2022-06-28',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ page_size: 100 })
             })
             .then(function(response) {
-                if (!response.ok) throw new Error('数据库连接失败');
-                return fetch('https://api.notion.com/v1/databases/' + notionDbId + '/query', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + notionToken,
-                        'Notion-Version': '2022-06-28',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ page_size: 100 })
-                });
-            })
-            .then(function(response) {
-                if (!response.ok) throw new Error('查询失败');
+                if (!response.ok) throw new Error('查询失败(' + response.status + ')');
                 return response.json();
             })
             .then(function(data) {
+                if (data.object === 'error') throw new Error(data.message || 'API错误');
                 renderNotionCards(data.results);
-                status.textContent = '同步成功！共 ' + data.results.length + ' 条笔记';
+                status.textContent = '同步成功！共 ' + (data.results ? data.results.length : 0) + ' 条笔记';
                 status.style.color = '#5a7c5a';
             })
             .catch(function(error) {
