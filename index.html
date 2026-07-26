@@ -709,6 +709,7 @@
         var holidays = {
             '1-1': '元旦', '2-14': '情人节', '3-8': '妇女节', '4-1': '愚人节',
             '5-1': '劳动节', '5-4': '青年节', '6-1': '儿童节', '7-1': '建党节',
+            '7-26': '测试节',
             '8-1': '建军节', '9-10': '教师节', '10-1': '国庆节', '10-24': '程序员节',
             '11-11': '双十一', '12-24': '平安夜', '12-25': '圣诞节'
         };
@@ -866,19 +867,22 @@
             monthHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">';
             for (var i = 0; i < firstDay; i++) monthHtml += '<div style="padding:4px;"></div>';
             for (var d = 1; d <= daysInMonth; d++) {
-                var isToday = d === today;
-                var isRealToday2 = isRealToday && d === realToday.getDate();
+                var isSelected = d === today;
+                var isRealToday2 = (year === realToday.getFullYear() && month === realToday.getMonth() && d === realToday.getDate());
                 var h = getHoliday(month+1, d, year, month+1, d);
                 var lunar = getLunar(year + '-' + (month+1) + '-' + d);
-                var cellStyle = 'padding:4px 2px;border-radius:8px;cursor:pointer;font-size:13px;';
-                if (isToday) cellStyle += 'background:#5a7c5a;color:white;';
+                var cellStyle = 'padding:4px 2px;border-radius:8px;cursor:pointer;font-size:13px;min-height:36px;';
+                if (isSelected) cellStyle += 'background:#5a7c5a;color:white;';
                 else if (isRealToday2) cellStyle += 'background:#e8f0e8;color:#5a7c5a;font-weight:600;';
                 else if (h) cellStyle += 'color:#c97e7e;font-weight:600;';
                 else cellStyle += 'color:#333;';
                 monthHtml += '<div style="' + cellStyle + '" onclick="selectDate(' + year + ',' + month + ',' + d + ')">';
-                monthHtml += '<div>' + d + '</div>';
-                if (h) monthHtml += '<div style="font-size:9px;">' + h + '</div>';
-                else if (lunar) monthHtml += '<div style="font-size:9px;color:' + (isToday ? 'rgba(255,255,255,0.7)' : '#bbb') + '">' + lunar + '</div>';
+                monthHtml += '<div style="font-size:13px;">' + d + '</div>';
+                if (h) {
+                    monthHtml += '<div style="font-size:9px;margin-top:2px;">' + h + '</div>';
+                } else if (lunar) {
+                    monthHtml += '<div style="font-size:9px;margin-top:2px;color:' + (isSelected ? 'rgba(255,255,255,0.7)' : '#bbb') + '">' + lunar + '</div>';
+                }
                 monthHtml += '</div>';
             }
             monthHtml += '</div>';
