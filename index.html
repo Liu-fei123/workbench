@@ -60,13 +60,17 @@
             top: 0;
             left: 0;
             bottom: 0;
-            width: 220px;
-            background: white;
+            width: 70px;
+            background: #4a6c4a;
             z-index: 200;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
             overflow-y: auto;
-            padding-top: 60px;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
         .sidebar.active {
             transform: translateX(0);
@@ -86,21 +90,26 @@
         }
         .nav-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            padding: 14px 20px;
+            gap: 4px;
+            padding: 10px 4px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            width: 60px;
+            border-radius: 10px;
+            text-align: center;
         }
         .nav-item:hover {
-            background: #f5f0e8;
+            background: rgba(255,255,255,0.1);
         }
         .nav-item.active {
-            background: #5a7c5a;
+            background: rgba(255,255,255,0.2);
             color: white;
         }
         .nav-icon {
-            font-size: 20px;
+            font-size: 22px;
         }
         .content {
             padding: 16px;
@@ -359,36 +368,32 @@
     
     <div class="sidebar" id="sidebar">
         <div class="nav-item active" onclick="switchSection('todo')">
-            <span class="nav-icon">📋</span>
-            <span>今日清单</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('morning')">
-            <span class="nav-icon">🌅</span>
-            <span>晨间习惯</span>
+            <span class="nav-icon">🏠</span>
+            <span>首页</span>
         </div>
         <div class="nav-item" onclick="switchSection('books')">
             <span class="nav-icon">📚</span>
-            <span>读书笔记</span>
+            <span>读书</span>
         </div>
         <div class="nav-item" onclick="switchSection('ideas')">
             <span class="nav-icon">💡</span>
-            <span>灵感收集</span>
+            <span>灵感</span>
         </div>
         <div class="nav-item" onclick="switchSection('finance')">
             <span class="nav-icon">💰</span>
-            <span>理财记账</span>
+            <span>记账</span>
         </div>
         <div class="nav-item" onclick="switchSection('english')">
             <span class="nav-icon">🌍</span>
-            <span>英语学习</span>
-        </div>
-        <div class="nav-item" onclick="switchSection('ai')">
-            <span class="nav-icon">🤖</span>
-            <span>AI学习</span>
+            <span>英语</span>
         </div>
         <div class="nav-item" onclick="switchSection('creator')">
             <span class="nav-icon">🎬</span>
-            <span>自媒体创作</span>
+            <span>创作</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('ai')">
+            <span class="nav-icon">🤖</span>
+            <span>AI</span>
         </div>
     </div>
 
@@ -407,8 +412,28 @@
 
     <div class="content">
         <div class="section active" id="section-todo">
-            <div class="section-title">今日清单</div>
+            <div class="section-title">晚上好 👋</div>
+            <div style="font-size: 14px; color: #888; margin-bottom: 16px;">今天辛苦啦</div>
+
+            <div class="card" style="margin-bottom: 16px;">
+                <div id="calendarWidget"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                <div class="card" style="text-align: center; padding: 20px;">
+                    <div style="font-size: 28px;">📋</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #5a7c5a;" id="todoCount">0/0</div>
+                    <div style="font-size: 12px; color: #888;">今日任务</div>
+                </div>
+                <div class="card" style="text-align: center; padding: 20px;" onclick="switchSection('morning')">
+                    <div style="font-size: 28px;">🌅</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #5a7c5a;" id="morningCheck">--</div>
+                    <div style="font-size: 12px; color: #888;">早起打卡</div>
+                </div>
+            </div>
+
             <div class="card">
+                <div class="section-title">今日清单</div>
                 <div id="todoList"></div>
                 <div class="todo-input-area">
                     <input type="text" class="todo-input" id="todoInput" placeholder="添加新任务...">
@@ -418,28 +443,12 @@
         </div>
 
         <div class="section" id="section-morning">
-            <div class="section-title">晨间习惯</div>
-            <div class="card">
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 48px;">⏰</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #5a7c5a;" id="wakeUpTime">--:--</div>
-                    <button class="btn-primary" onclick="checkInMorning()" style="margin-top: 12px; width: 100%;">打卡早起</button>
-                </div>
-            </div>
-            <div class="card">
-                <div class="section-title">晨间时间规划</div>
-                <div id="morningSchedule"></div>
-                <div style="margin-top: 12px;">
-                    <select class="form-input" id="morningActivityType">
-                        <option value="读书">读书</option>
-                        <option value="学习">学习</option>
-                        <option value="健身">健身</option>
-                        <option value="冥想">冥想</option>
-                        <option value="写作">写作</option>
-                    </select>
-                    <input type="number" class="form-input" id="morningDuration" placeholder="时长(分钟)">
-                    <button class="btn-primary" onclick="addMorningActivity()">添加</button>
-                </div>
+            <div class="section-title">早起打卡</div>
+            <div class="card" style="text-align: center; padding: 30px;">
+                <div style="font-size: 64px; margin-bottom: 16px;">🌅</div>
+                <div id="morningCheckBig" style="font-size: 18px; color: #888; margin-bottom: 20px;">今日未打卡</div>
+                <div id="morningCheckBtn" class="todo-checkbox" style="width: 60px; height: 60px; margin: 0 auto; font-size: 28px;" onclick="checkInMorning()"></div>
+                <div style="font-size: 13px; color: #888; margin-top: 12px;">点击打勾完成早起打卡</div>
             </div>
         </div>
 
@@ -611,15 +620,108 @@
             for (var i = 0; i < navItems.length; i++) {
                 navItems[i].classList.remove('active');
             }
-            event.currentTarget.classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
             
             toggleSidebar();
         }
+
+        var holidays = {
+            '1-1': '元旦',
+            '2-14': '情人节',
+            '3-8': '妇女节',
+            '4-1': '愚人节',
+            '5-1': '劳动节',
+            '5-4': '青年节',
+            '6-1': '儿童节',
+            '7-1': '建党节',
+            '8-1': '建军节',
+            '9-10': '教师节',
+            '10-1': '国庆节',
+            '10-24': '程序员节',
+            '11-11': '双十一',
+            '12-24': '平安夜',
+            '12-25': '圣诞节'
+        };
+
+        var lunarHolidays = {
+            '2026-1-28': '除夕', '2026-1-29': '春节', '2026-1-30': '初二', '2026-1-31': '初三',
+            '2026-2-1': '初四', '2026-2-2': '初五', '2026-2-3': '初六',
+            '2026-2-19': '元宵节',
+            '2026-4-5': '清明节',
+            '2026-5-19': '端午节',
+            '2026-8-26': '七夕',
+            '2026-9-2': '中元节',
+            '2026-9-21': '中秋节',
+            '2026-10-14': '重阳节'
+        };
 
         function updateDate() {
             var now = new Date();
             var weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
             document.getElementById('currentDate').textContent = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日 · ' + weekDays[now.getDay()];
+        }
+
+        function renderCalendar() {
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = now.getMonth();
+            var today = now.getDate();
+            var firstDay = new Date(year, month, 1).getDay();
+            var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            var monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+            var weekNames = ['日', '一', '二', '三', '四', '五', '六'];
+
+            var holidayText = '';
+            var key = (month + 1) + '-' + today;
+            var lunarKey = year + '-' + (month + 1) + '-' + today;
+            if (holidays[key]) holidayText = holidays[key];
+            if (lunarHolidays[lunarKey]) holidayText = lunarHolidays[lunarKey];
+
+            var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+            html += '<div style="font-size:18px;font-weight:600;">' + year + '年 ' + monthNames[month] + '</div>';
+            if (holidayText) html += '<div style="background:#c97e7e;color:white;padding:4px 12px;border-radius:12px;font-size:13px;">' + holidayText + '</div>';
+            html += '</div>';
+
+            html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;color:#888;margin-bottom:8px;">';
+            for (var i = 0; i < 7; i++) {
+                html += '<div>' + weekNames[i] + '</div>';
+            }
+            html += '</div>';
+
+            html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">';
+            for (var i = 0; i < firstDay; i++) {
+                html += '<div style="padding:8px;"></div>';
+            }
+            for (var d = 1; d <= daysInMonth; d++) {
+                var isToday = d === today;
+                var dKey = (month + 1) + '-' + d;
+                var dLunarKey = year + '-' + (month + 1) + '-' + d;
+                var isHoliday = holidays[dKey] || lunarHolidays[dLunarKey];
+                var style = 'padding:8px;border-radius:50%;font-size:14px;';
+                if (isToday) {
+                    style += 'background:#5a7c5a;color:white;font-weight:600;';
+                } else if (isHoliday) {
+                    style += 'color:#c97e7e;font-weight:600;';
+                } else {
+                    style += 'color:#333;';
+                }
+                html += '<div style="' + style + '">' + d + '</div>';
+            }
+            html += '</div>';
+
+            document.getElementById('calendarWidget').innerHTML = html;
+        }
+
+        function updateTodoCount() {
+            var total = todos.length;
+            var done = 0;
+            for (var i = 0; i < todos.length; i++) {
+                if (todos[i].completed) done++;
+            }
+            document.getElementById('todoCount').textContent = done + '/' + total;
         }
 
         function renderTodos() {
@@ -634,6 +736,7 @@
                 html += '</div>';
             }
             list.innerHTML = html;
+            updateTodoCount();
         }
 
         function addTodo() {
@@ -977,37 +1080,57 @@
 
         function checkInMorning() {
             var now = new Date();
+            var today = now.toDateString();
+            var alreadyChecked = false;
+            for (var i = 0; i < morningData.checkIns.length; i++) {
+                if (morningData.checkIns[i].date === today) {
+                    alreadyChecked = true;
+                    break;
+                }
+            }
+            if (alreadyChecked) {
+                alert('今天已经打卡过了！');
+                return;
+            }
             var timeStr = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-            morningData.checkIns.push({date: now.toDateString(), time: timeStr});
+            morningData.checkIns.push({date: today, time: timeStr});
             saveData();
-            document.getElementById('wakeUpTime').textContent = timeStr;
-            alert('打卡成功！');
+            renderMorningStatus();
+            alert('早起打卡成功！');
         }
 
-        function addMorningActivity() {
-            var type = document.getElementById('morningActivityType').value;
-            var duration = parseInt(document.getElementById('morningDuration').value);
-            if (!duration) { alert('请输入时长'); return; }
-            morningData.activities.push({type: type, duration: duration});
-            saveData();
-            renderMorning();
+        function renderMorningStatus() {
+            var today = new Date().toDateString();
+            var checked = false;
+            var timeStr = '';
+            for (var i = 0; i < morningData.checkIns.length; i++) {
+                if (morningData.checkIns[i].date === today) {
+                    checked = true;
+                    timeStr = morningData.checkIns[i].time;
+                    break;
+                }
+            }
+            var small = document.getElementById('morningCheck');
+            var big = document.getElementById('morningCheckBig');
+            var btn = document.getElementById('morningCheckBtn');
+            if (small) small.textContent = checked ? '✓' : '--';
+            if (big) big.textContent = checked ? '今日已打卡 ' + timeStr : '今日未打卡';
+            if (btn) {
+                if (checked) {
+                    btn.classList.add('checked');
+                    btn.style.background = '#5a7c5a';
+                    btn.style.borderColor = '#5a7c5a';
+                    btn.innerHTML = '✓';
+                    btn.style.color = 'white';
+                    btn.style.display = 'flex';
+                    btn.style.alignItems = 'center';
+                    btn.style.justifyContent = 'center';
+                }
+            }
         }
 
         function renderMorning() {
-            var schedule = document.getElementById('morningSchedule');
-            if (morningData.activities.length === 0) {
-                schedule.innerHTML = '<div class="empty-state">还没有安排活动</div>';
-                return;
-            }
-            var html = '';
-            for (var i = 0; i < morningData.activities.length; i++) {
-                var act = morningData.activities[i];
-                html += '<div class="todo-item">';
-                html += '<span>' + act.type + '</span>';
-                html += '<span>' + act.duration + '分钟</span>';
-                html += '</div>';
-            }
-            schedule.innerHTML = html;
+            renderMorningStatus();
         }
 
         function saveAiNote() {
@@ -1133,7 +1256,9 @@
         }
 
         updateDate();
+        renderCalendar();
         renderTodos();
+        updateTodoCount();
         renderBooks();
         renderIdeas();
         renderExpenses();
