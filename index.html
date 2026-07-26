@@ -26,6 +26,24 @@
             align-items: center;
             margin-bottom: 10px;
         }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-toggle {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .header-title { font-size: 20px; font-weight: 600; }
         .header-date { font-size: 13px; opacity: 0.9; }
         .reset-btn {
@@ -35,10 +53,58 @@
             padding: 6px 12px;
             border-radius: 16px;
             font-size: 12px;
+            cursor: pointer;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 220px;
+            background: white;
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            padding-top: 60px;
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .nav-item:hover {
+            background: #f5f0e8;
+        }
+        .nav-item.active {
+            background: #5a7c5a;
+            color: white;
+        }
+        .nav-icon {
+            font-size: 20px;
         }
         .content {
             padding: 16px;
-            padding-bottom: 80px;
+            padding-bottom: 20px;
         }
         .section-title {
             font-size: 18px;
@@ -70,6 +136,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         .todo-checkbox.checked {
             background: #5a7c5a;
@@ -106,34 +173,6 @@
             border-radius: 10px;
             font-size: 15px;
             cursor: pointer;
-        }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #e8e4dc;
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            z-index: 100;
-        }
-        .bottom-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 12px;
-            cursor: pointer;
-            color: #888;
-            font-size: 12px;
-        }
-        .bottom-nav-item.active {
-            color: #5a7c5a;
-        }
-        .bottom-nav-icon {
-            font-size: 22px;
         }
         .section {
             display: none;
@@ -241,18 +280,57 @@
     </style>
 </head>
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="nav-item active" onclick="switchSection('todo')">
+            <span class="nav-icon">📋</span>
+            <span>今日清单</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('morning')">
+            <span class="nav-icon">🌅</span>
+            <span>晨间习惯</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('books')">
+            <span class="nav-icon">📚</span>
+            <span>读书笔记</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('ideas')">
+            <span class="nav-icon">💡</span>
+            <span>灵感收集</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('finance')">
+            <span class="nav-icon">💰</span>
+            <span>理财记账</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('english')">
+            <span class="nav-icon">🌍</span>
+            <span>英语学习</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('ai')">
+            <span class="nav-icon">🤖</span>
+            <span>AI学习</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('creator')">
+            <span class="nav-icon">🎬</span>
+            <span>自媒体创作</span>
+        </div>
+    </div>
+
     <div class="header">
         <div class="header-top">
-            <div>
-                <div class="header-title">我的工作台</div>
-                <div class="header-date" id="currentDate">--</div>
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div>
+                    <div class="header-title">我的工作台</div>
+                    <div class="header-date" id="currentDate">--</div>
+                </div>
             </div>
             <button class="reset-btn" onclick="resetToday()">重置今日</button>
         </div>
     </div>
 
     <div class="content">
-        <!-- 今日清单 -->
         <div class="section active" id="section-todo">
             <div class="section-title">今日清单</div>
             <div class="card">
@@ -264,7 +342,6 @@
             </div>
         </div>
 
-        <!-- 晨间习惯 -->
         <div class="section" id="section-morning">
             <div class="section-title">晨间习惯</div>
             <div class="card">
@@ -291,14 +368,12 @@
             </div>
         </div>
 
-        <!-- 读书笔记 -->
         <div class="section" id="section-books">
             <div class="section-title">读书笔记</div>
             <div id="bookList"></div>
             <button class="btn-primary" onclick="openBookModal()" style="margin-top: 12px;">+ 添加书籍</button>
         </div>
 
-        <!-- 灵感收集 -->
         <div class="section" id="section-ideas">
             <div class="section-title">灵感收集</div>
             <div class="card">
@@ -308,7 +383,6 @@
             <div id="ideaList"></div>
         </div>
 
-        <!-- 理财记账 -->
         <div class="section" id="section-finance">
             <div class="section-title">理财记账</div>
             <div class="finance-box">
@@ -323,7 +397,6 @@
             </div>
         </div>
 
-        <!-- 英语学习 -->
         <div class="section" id="section-english">
             <div class="section-title">英语学习</div>
             <div class="card">
@@ -339,7 +412,6 @@
             </div>
         </div>
 
-        <!-- AI学习 -->
         <div class="section" id="section-ai">
             <div class="section-title">AI学习</div>
             <div class="card">
@@ -357,7 +429,6 @@
             </div>
         </div>
 
-        <!-- 自媒体创作 -->
         <div class="section" id="section-creator">
             <div class="section-title">自媒体创作</div>
             <div class="card">
@@ -367,43 +438,6 @@
         </div>
     </div>
 
-    <!-- 底部导航 -->
-    <div class="bottom-nav">
-        <div class="bottom-nav-item active" onclick="switchSection('todo')">
-            <span class="bottom-nav-icon">📋</span>
-            <span>清单</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('morning')">
-            <span class="bottom-nav-icon">🌅</span>
-            <span>晨间</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('books')">
-            <span class="bottom-nav-icon">📚</span>
-            <span>读书</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('ideas')">
-            <span class="bottom-nav-icon">💡</span>
-            <span>灵感</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('finance')">
-            <span class="bottom-nav-icon">💰</span>
-            <span>记账</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('english')">
-            <span class="bottom-nav-icon">🌍</span>
-            <span>英语</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('ai')">
-            <span class="bottom-nav-icon">🤖</span>
-            <span>AI</span>
-        </div>
-        <div class="bottom-nav-item" onclick="switchSection('creator')">
-            <span class="bottom-nav-icon">🎬</span>
-            <span>创作</span>
-        </div>
-    </div>
-
-    <!-- 弹窗 -->
     <div class="modal-overlay" id="bookModal">
         <div class="modal">
             <div class="modal-header">
@@ -430,7 +464,6 @@
     </div>
 
     <script>
-        // 数据存储
         var todos = JSON.parse(localStorage.getItem('todos') || '[{"id":1,"text":"阅读30分钟","completed":false},{"id":2,"text":"背单词50个","completed":false},{"id":3,"text":"记录今日开销","completed":false}]');
         var books = JSON.parse(localStorage.getItem('books') || '[]');
         var ideas = JSON.parse(localStorage.getItem('ideas') || '[]');
@@ -451,6 +484,18 @@
             localStorage.setItem('aiNote', aiNote);
         }
 
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
         function switchSection(section) {
             var sections = document.querySelectorAll('.section');
             for (var i = 0; i < sections.length; i++) {
@@ -458,11 +503,13 @@
             }
             document.getElementById('section-' + section).classList.add('active');
             
-            var navItems = document.querySelectorAll('.bottom-nav-item');
+            var navItems = document.querySelectorAll('.nav-item');
             for (var i = 0; i < navItems.length; i++) {
                 navItems[i].classList.remove('active');
             }
             event.currentTarget.classList.add('active');
+            
+            toggleSidebar();
         }
 
         function updateDate() {
@@ -731,7 +778,6 @@
             localStorage.setItem('aiNote', aiNote);
         }
 
-        // 初始化
         updateDate();
         renderTodos();
         renderBooks();
@@ -742,7 +788,6 @@
         renderMorning();
         document.getElementById('aiNote').value = aiNote;
 
-        // 弹窗关闭
         document.getElementById('bookModal').onclick = function(e) {
             if (e.target === this) closeBookModal();
         };
