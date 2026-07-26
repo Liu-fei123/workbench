@@ -1498,7 +1498,8 @@
             if (notionToken && notionDbId) {
                 document.getElementById('notionTokenArea').style.display = 'none';
                 document.getElementById('notionSyncArea').style.display = 'block';
-                document.getElementById('notionStatus').textContent = '已配置，点击同步按钮获取笔记';
+                document.getElementById('notionStatus').textContent = '正在自动同步...';
+                syncNotion();
             }
         }
 
