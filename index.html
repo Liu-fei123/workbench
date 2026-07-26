@@ -362,111 +362,72 @@
             cursor: pointer;
         }
         .calendar-widget {
-            background: white;
+            background: #faf8f3;
             border-radius: 16px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.3s ease;
+            border: 2px solid #e8e4dc;
+            position: relative;
         }
         .calendar-day-view {
             text-align: center;
-            padding: 24px 16px;
+            padding: 20px 16px;
         }
-        .calendar-day-num {
-            font-size: 72px;
-            font-weight: 700;
-            color: #5a7c5a;
-            line-height: 1;
-        }
-        .calendar-day-info {
+        .calendar-top-bar {
             display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 12px;
-            font-size: 13px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px 12px;
+            border-bottom: 1px solid #e8e4dc;
+            margin-bottom: 16px;
+        }
+        .calendar-top-bar span {
+            font-size: 14px;
             color: #888;
         }
-        .calendar-day-info span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .calendar-big-date {
+            font-size: 100px;
+            font-weight: 300;
+            color: #5a7c5a;
+            line-height: 1;
+            font-family: Georgia, serif;
+            margin: 10px 0;
+        }
+        .calendar-weekday {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .calendar-full-date {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .calendar-lunar {
+            font-size: 14px;
+            color: #8b7355;
+            margin-bottom: 8px;
         }
         .calendar-holiday-tag {
             display: inline-block;
             background: #c97e7e;
             color: white;
-            padding: 4px 14px;
+            padding: 4px 16px;
             border-radius: 12px;
             font-size: 13px;
-            margin-top: 10px;
+        }
+        .calendar-weather {
+            font-size: 13px;
+            color: #888;
+            margin-top: 8px;
         }
         .calendar-month-view {
             padding: 16px;
             display: none;
         }
-        .calendar-month-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .calendar-month-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            text-align: center;
-        }
-        .calendar-grid-header {
-            font-size: 11px;
-            color: #888;
-            padding: 6px;
-        }
-        .calendar-grid-day {
-            padding: 8px 4px;
-            border-radius: 8px;
-            font-size: 13px;
-            position: relative;
-        }
-        .calendar-grid-day.today {
-            background: #5a7c5a;
-            color: white;
-            font-weight: 600;
-        }
-        .calendar-grid-day.holiday {
-            color: #c97e7e;
-            font-weight: 600;
-        }
-        .calendar-grid-day .lunar {
-            font-size: 9px;
-            color: #bbb;
-            margin-top: 2px;
-        }
-        .calendar-grid-day.today .lunar {
-            color: rgba(255,255,255,0.7);
-        }
         .calendar-year-view {
             padding: 16px;
             display: none;
-        }
-        .calendar-year-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-        .calendar-year-month {
-            background: #f5f0e8;
-            border-radius: 10px;
-            padding: 12px 8px;
-            text-align: center;
-            font-size: 13px;
-        }
-        .calendar-year-month.current {
-            background: #5a7c5a;
-            color: white;
         }
     </style>
 </head>
@@ -778,55 +739,54 @@
             var year = now.getFullYear();
             var month = now.getMonth();
             var today = now.getDate();
-            var weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-            var monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+            var weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            var enMonths = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
+            var cnMonths = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
             var lunarToday = getLunar(year + '-' + (month+1) + '-' + today);
             var holidayToday = getHoliday(month+1, today, year, month+1, today);
 
-            var dayHtml = '<div class="calendar-day-num">' + today + '</div>';
-            dayHtml += '<div class="calendar-day-info">';
-            dayHtml += '<span>📅 ' + year + '年' + (month+1) + '月</span>';
-            dayHtml += '<span>' + weekDays[now.getDay()] + '</span>';
-            if (lunarToday) dayHtml += '<span>🌙 ' + lunarToday + '</span>';
+            var dayHtml = '<div class="calendar-top-bar">';
+            dayHtml += '<span>' + enMonths[month] + '</span>';
+            dayHtml += '<span style="font-size:18px;font-weight:600;color:#333;">' + year + '</span>';
+            dayHtml += '<span>' + cnMonths[month] + '</span>';
             dayHtml += '</div>';
+
+            dayHtml += '<div class="calendar-big-date">' + today + '</div>';
+            dayHtml += '<div class="calendar-weekday">' + year + '年' + (month+1) + '月' + today + '日 ' + weekDays[now.getDay()] + '</div>';
+            if (lunarToday) dayHtml += '<div class="calendar-lunar">' + lunarToday + '</div>';
             if (holidayToday) dayHtml += '<div class="calendar-holiday-tag">' + holidayToday + '</div>';
+            dayHtml += '<div class="calendar-weather">☀️ 天气晴朗 26°C</div>';
+
             document.getElementById('calendarDayView').innerHTML = dayHtml;
 
             var firstDay = new Date(year, month, 1).getDay();
             var daysInMonth = new Date(year, month + 1, 0).getDate();
-            var monthHtml = '<div class="calendar-month-header">';
-            monthHtml += '<div class="calendar-month-title">' + year + '年 ' + monthNames[month] + '</div>';
-            if (holidayToday) monthHtml += '<div class="calendar-holiday-tag">' + holidayToday + '</div>';
-            monthHtml += '</div>';
-            monthHtml += '<div class="calendar-grid">';
+            var monthHtml = '<div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:12px;">' + year + '年 ' + cnMonths[month] + '</div>';
+            monthHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px;color:#888;margin-bottom:8px;">';
             var wNames = ['日', '一', '二', '三', '四', '五', '六'];
-            for (var i = 0; i < 7; i++) {
-                monthHtml += '<div class="calendar-grid-header">' + wNames[i] + '</div>';
-            }
-            for (var i = 0; i < firstDay; i++) {
-                monthHtml += '<div class="calendar-grid-day"></div>';
-            }
+            for (var i = 0; i < 7; i++) monthHtml += '<div>' + wNames[i] + '</div>';
+            monthHtml += '</div>';
+            monthHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">';
+            for (var i = 0; i < firstDay; i++) monthHtml += '<div style="padding:8px;"></div>';
             for (var d = 1; d <= daysInMonth; d++) {
                 var isToday = d === today;
                 var h = getHoliday(month+1, d, year, month+1, d);
-                var cls = 'calendar-grid-day';
-                if (isToday) cls += ' today';
-                else if (h) cls += ' holiday';
-                var lunar = getLunar(year + '-' + (month+1) + '-' + d);
-                monthHtml += '<div class="' + cls + '">' + d + (lunar ? '<div class="lunar">' + lunar + '</div>' : '') + '</div>';
+                var style = 'padding:8px;border-radius:50%;font-size:14px;';
+                if (isToday) style += 'background:#5a7c5a;color:white;font-weight:600;';
+                else if (h) style += 'color:#c97e7e;font-weight:600;';
+                else style += 'color:#333;';
+                monthHtml += '<div style="' + style + '">' + d + '</div>';
             }
             monthHtml += '</div>';
             document.getElementById('calendarMonthView').innerHTML = monthHtml;
 
-            var yearHtml = '<div class="calendar-month-header">';
-            yearHtml += '<div class="calendar-month-title">' + year + '年</div>';
-            yearHtml += '</div>';
-            yearHtml += '<div class="calendar-year-grid">';
+            var yearHtml = '<div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:12px;">' + year + '年</div>';
+            yearHtml += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
             for (var m = 0; m < 12; m++) {
-                var cls = 'calendar-year-month';
-                if (m === month) cls += ' current';
-                yearHtml += '<div class="' + cls + '">' + monthNames[m] + '</div>';
+                var style = 'background:#f5f0e8;border-radius:10px;padding:12px;text-align:center;font-size:13px;';
+                if (m === month) style += 'background:#5a7c5a;color:white;';
+                yearHtml += '<div style="' + style + '">' + cnMonths[m] + '</div>';
             }
             yearHtml += '</div>';
             document.getElementById('calendarYearView').innerHTML = yearHtml;
