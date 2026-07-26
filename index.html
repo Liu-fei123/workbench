@@ -1596,7 +1596,7 @@
             }
 
             if (tag) {
-                body.properties.Tags = {
+                body.properties['标签'] = {
                     multi_select: [{ name: tag }]
                 };
             }
@@ -1659,6 +1659,9 @@
                     }
                     if (prop.type === 'select' && prop.select) {
                         tagName = prop.select.name;
+                    }
+                    if (key === '标签' && prop.type === 'multi_select' && prop.multi_select && prop.multi_select.length > 0) {
+                        tagName = prop.multi_select[0].name;
                     }
                     if (prop.type === 'created_time' && prop.created_time) {
                         var d = new Date(prop.created_time);
