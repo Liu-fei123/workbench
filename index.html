@@ -1986,15 +1986,21 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
-            updateDate();
-            renderTodos();
-            renderBooks();
-            renderIdeas();
-            renderExpenses();
-            renderWords();
-            renderCreator();
-            renderMorning();
-            document.getElementById('aiNote').value = aiNote;
+            try {
+                updateDate();
+                renderTodos();
+                renderBooks();
+                renderIdeas();
+                renderExpenses();
+                renderWords();
+                renderCreator();
+                renderMorning();
+                const aiNoteEl = document.getElementById('aiNote');
+                if (aiNoteEl) aiNoteEl.value = aiNote;
+            } catch (e) {
+                console.error('初始化错误:', e);
+                alert('页面加载出错，请刷新重试');
+            }
         });
 
         // 点击弹窗外部关闭
